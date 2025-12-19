@@ -31,16 +31,6 @@ declare module "next-auth" {
   }
 }
 
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    role: UserRole;
-    status: UserStatus;
-    firmId: string | null;
-    clientId: string | null;
-  }
-}
-
 export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
   session: {
@@ -110,11 +100,11 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id;
-        session.user.role = token.role;
-        session.user.status = token.status;
-        session.user.firmId = token.firmId;
-        session.user.clientId = token.clientId;
+        session.user.id = token.id as string;
+        session.user.role = token.role as UserRole;
+        session.user.status = token.status as UserStatus;
+        session.user.firmId = token.firmId as string | null;
+        session.user.clientId = token.clientId as string | null;
       }
       return session;
     },
