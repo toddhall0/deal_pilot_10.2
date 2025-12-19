@@ -1,8 +1,20 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { UserRole } from "@prisma/client";
+import { UserRole, UserStatus } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
+
+// Define the authenticated user type
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  status: UserStatus;
+  firmId: string | null;
+  clientId: string | null;
+  image?: string | null;
+}
 
 // Check if user has required role
 export function hasRole(userRole: UserRole, requiredRoles: UserRole[]): boolean {
@@ -83,10 +95,7 @@ export async function getCurrentUser() {
 
 // API route protection wrapper
 export function withAuth(
-  handler: (
-    request: Request,
-    context: { user: NonNullable<Awaited<ReturnType<typeof auth>>>["user"] }
-  ) => Promise<Response>,
+  handler: (request: Request, context: { user: AuthUser }) => Promise<Response>,
   options: { roles?: UserRole[] } = {}
 ) {
   return async (request: Request) => {
