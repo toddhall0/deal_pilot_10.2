@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LoginForm } from "@/components/forms/login-form";
+import { ResetPasswordForm } from "@/components/forms/reset-password-form";
 import { FolderKanban } from "lucide-react";
 
-export default function LoginPage() {
+export default function ResetPasswordPage() {
   return (
     <>
       <div className="flex flex-col items-center space-y-2 text-center">
@@ -14,11 +14,11 @@ export default function LoginPage() {
       </div>
       <Card>
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Sign in</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
+          <CardTitle className="text-2xl">Reset password</CardTitle>
+          <CardDescription>Enter your new password below</CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm />
+          <ResetPasswordForm />
         </CardContent>
       </Card>
     </>
