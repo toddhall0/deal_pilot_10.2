@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "@/components/forms/login-form";
 import { FolderKanban } from "lucide-react";
@@ -18,7 +19,9 @@ export default function LoginPage() {
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm />
+          <Suspense fallback={<div className="flex justify-center py-4">Loading...</div>}>
+            <LoginForm />
+          </Suspense>
         </CardContent>
       </Card>
     </>
