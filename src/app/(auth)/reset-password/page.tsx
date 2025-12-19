@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResetPasswordForm } from "@/components/forms/reset-password-form";
 import { FolderKanban } from "lucide-react";
@@ -18,7 +19,9 @@ export default function ResetPasswordPage() {
           <CardDescription>Enter your new password below</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResetPasswordForm />
+          <Suspense fallback={<div className="flex justify-center py-4">Loading...</div>}>
+            <ResetPasswordForm />
+          </Suspense>
         </CardContent>
       </Card>
     </>
