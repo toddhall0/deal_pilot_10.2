@@ -10,7 +10,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums
+// ============================================
+// ENUMS
+// ============================================
+
 enum UserRole {
   ADMIN
   ATTORNEY
@@ -23,19 +26,52 @@ enum UserStatus {
   PENDING
 }
 
+enum DealType {
+  ACQUISITION
+  DISPOSITION
+}
+
 enum DealStatus {
+  DRAFT
   ACTIVE
-  PENDING
+  UNDER_CONTRACT
+  IN_DUE_DILIGENCE
+  PENDING_CLOSING
   CLOSED
-  CANCELLED
+  TERMINATED
   ON_HOLD
+}
+
+enum PropertyType {
+  OFFICE
+  RETAIL
+  INDUSTRIAL
+  MULTIFAMILY
+  MIXED_USE
+  LAND
+  HOSPITALITY
+  HEALTHCARE
+  SELF_STORAGE
+  DATA_CENTER
+  OTHER
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  MISSED
+  WAIVED
+  NOT_APPLICABLE
 }
 
 enum TaskStatus {
   TODO
   IN_PROGRESS
-  COMPLETED
+  IN_REVIEW
   BLOCKED
+  COMPLETED
+  CANCELLED
 }
 
 enum TaskPriority {
@@ -45,7 +81,40 @@ enum TaskPriority {
   URGENT
 }
 
-// User and Authentication Models
+enum DocumentCategory {
+  CONTRACT
+  AMENDMENT
+  DUE_DILIGENCE
+  TITLE
+  SURVEY
+  ENVIRONMENTAL
+  FINANCIAL
+  LEGAL
+  CORRESPONDENCE
+  CLOSING
+  OTHER
+}
+
+enum DepositStatus {
+  SCHEDULED
+  DUE
+  PAID
+  APPLIED_TO_PURCHASE
+  REFUNDED
+  FORFEITED
+}
+
+enum NotificationFrequency {
+  REALTIME
+  DAILY
+  WEEKLY
+  NONE
+}
+
+// ============================================
+// USER AND AUTHENTICATION MODELS
+// ============================================
+
 model User {
   id            String     @id @default(cuid())
   email         String     @unique
@@ -55,18 +124,16 @@ model User {
   status        UserStatus @default(PENDING)
   avatar        String?
   phone         String?
-  title         String? // Job title
+  title         String?
   emailVerified DateTime?
 
   // Relationships
   firmId String?
   firm   Firm?   @relation(fields: [firmId], references: [id])
 
-  // For clients - the client organization they belong to
   clientId String?
   client   Client? @relation(fields: [clientId], references: [id])
 
-  // For attorneys - clients they manage
   managedClients ClientUser[]
 
   // Activity tracking
@@ -75,12 +142,16 @@ model User {
   lastLoginAt DateTime?
 
   // Related records
-  createdDeals  Deal[] @relation("CreatedBy")
-  assignedTasks Task[] @relation("AssignedTo")
-  createdTasks  Task[] @relation("TaskCreatedBy")
-  notes         Note[]
-  sessions      Session[]
-  accounts      Account[]
+  createdDeals     Deal[]        @relation("CreatedBy")
+  assignedTasks    Task[]        @relation("AssignedTo")
+  createdTasks     Task[]        @relation("TaskCreatedBy")
+  notes            Note[]
+  documents        Document[]
+  taskComments     TaskComment[]
+  sessions         Session[]
+  accounts         Account[]
+  preferences      UserPreferences?
+  notifications    Notification[]
 
   @@index([firmId])
   @@index([clientId])
@@ -105,7 +176,7 @@ model Firm {
 model Client {
   id      String  @id @default(cuid())
   name    String
-  type    String? // Corporation, LLC, Partnership, etc.
+  type    String?
   address String?
   phone   String?
   email   String?
@@ -114,7 +185,7 @@ model Client {
   firmId String
   firm   Firm   @relation(fields: [firmId], references: [id])
 
-  users             User[] // Client users
+  users             User[]
   deals             Deal[]
   managingAttorneys ClientUser[]
 
@@ -124,7 +195,6 @@ model Client {
   @@index([firmId])
 }
 
-// Junction table for attorney-client relationships
 model ClientUser {
   id String @id @default(cuid())
 
@@ -134,7 +204,7 @@ model ClientUser {
   clientId String
   client   Client @relation(fields: [clientId], references: [id])
 
-  isPrimary Boolean @default(false) // Primary attorney for client
+  isPrimary Boolean @default(false)
 
   createdAt DateTime @default(now())
 
@@ -191,71 +261,393 @@ model PasswordResetToken {
   @@index([email])
 }
 
-// Deal and Task Models (placeholder for Phase 3+)
-model Deal {
-  id          String     @id @default(cuid())
-  name        String
-  description String?
-  status      DealStatus @default(PENDING)
-  value       Decimal?   @db.Decimal(15, 2)
+// ============================================
+// DEAL MODELS
+// ============================================
 
+model Deal {
+  id         String     @id @default(cuid())
+  name       String
+  dealNumber String     @unique
+  type       DealType   @default(ACQUISITION)
+  status     DealStatus @default(DRAFT)
+
+  // Property Information
+  propertyName    String?
+  propertyType    PropertyType?
+  propertyAddress String?
+  propertyCity    String?
+  propertyState   String?
+  propertyZip     String?
+  propertyCounty  String?
+
+  // Property Details
+  acreage       Decimal? @db.Decimal(10, 4)
+  squareFootage Decimal? @db.Decimal(12, 2)
+  lotCount      Int?
+  unitCount     Int?
+
+  // Relationships
   clientId String
   client   Client @relation(fields: [clientId], references: [id])
 
   createdById String
   createdBy   User   @relation("CreatedBy", fields: [createdById], references: [id])
 
-  tasks     Task[]
-  notes     Note[]
-  documents Document[]
+  // Related entities
+  transactionSummary TransactionSummary?
+  timeline           Timeline?
+  documents          Document[]
+  tasks              Task[]
+  notes              Note[]
+  financials         DealFinancials?
 
-  closingDate    DateTime?
-  effectiveDate  DateTime?
-  expirationDate DateTime?
+  // Metadata
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  closedAt  DateTime?
+
+  @@index([clientId])
+  @@index([status])
+  @@index([createdById])
+  @@index([dealNumber])
+}
+
+// ============================================
+// TRANSACTION SUMMARY (AI-Generated)
+// ============================================
+
+model TransactionSummary {
+  id String @id @default(cuid())
+
+  dealId String @unique
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  // Contract Identification
+  contractDate  DateTime?
+  effectiveDate DateTime?
+
+  // Parties
+  buyerName     String?
+  buyerEntity   String?
+  buyerAddress  String?
+  sellerName    String?
+  sellerEntity  String?
+  sellerAddress String?
+
+  // Purchase Price
+  purchasePrice        Decimal? @db.Decimal(14, 2)
+  pricePerUnit         Decimal? @db.Decimal(14, 2)
+  priceAdjustable      Boolean  @default(false)
+  priceAdjustmentBasis String?
+
+  // Earnest Money
+  initialDeposit     Decimal?  @db.Decimal(14, 2)
+  initialDepositDue  DateTime?
+  additionalDeposits Json?
+
+  // Key Dates
+  feasibilityPeriodDays Int?
+  feasibilityExpiration DateTime?
+  closingDate           DateTime?
+  outsideClosingDate    DateTime?
+
+  // Contingencies
+  contingencies Json?
+
+  // Due Diligence Requirements
+  dueDiligenceItems Json?
+
+  // Closing Requirements
+  closingDocuments Json?
+
+  // Special Provisions
+  specialProvisions Json?
+
+  // Title & Survey
+  titleCompany       String?
+  escrowAgent        String?
+  surveyRequirements String?
+
+  // Prorations & Adjustments
+  prorationDate  DateTime?
+  prorationItems Json?
+
+  // Raw AI analysis
+  rawAnalysis Json?
+
+  // Version control
+  version           Int      @default(1)
+  analyzedAt        DateTime @default(now())
+  analyzedFromDocId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// TIMELINE & DEADLINES
+// ============================================
+
+model Timeline {
+  id String @id @default(cuid())
+
+  dealId String @unique
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  milestones Milestone[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Milestone {
+  id String @id @default(cuid())
+
+  timelineId String
+  timeline   Timeline @relation(fields: [timelineId], references: [id], onDelete: Cascade)
+
+  // Hierarchy support
+  parentId String?
+  parent   Milestone?  @relation("MilestoneHierarchy", fields: [parentId], references: [id])
+  children Milestone[] @relation("MilestoneHierarchy")
+
+  name          String
+  description   String?
+  dueDate       DateTime
+  completedDate DateTime?
+  status        MilestoneStatus @default(PENDING)
+
+  // Source tracking
+  isAutoGenerated Boolean @default(false)
+  sourceType      String?
+  sourceReference String?
+
+  // Ordering
+  sortOrder Int @default(0)
+
+  // Related tasks
+  tasks Task[]
+
+  // Notifications
+  reminderDays Int[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([clientId])
-  @@index([createdById])
-  @@index([status])
+  @@index([timelineId])
+  @@index([parentId])
+  @@index([dueDate])
 }
 
+// ============================================
+// TASK MANAGEMENT
+// ============================================
+
 model Task {
-  id          String       @id @default(cuid())
-  title       String
-  description String?
-  status      TaskStatus   @default(TODO)
-  priority    TaskPriority @default(MEDIUM)
-  dueDate     DateTime?
+  id String @id @default(cuid())
 
   dealId String
   deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
 
-  assignedToId String?
-  assignedTo   User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
+  milestoneId String?
+  milestone   Milestone? @relation(fields: [milestoneId], references: [id])
+
+  // Hierarchy
+  parentId String?
+  parent   Task?  @relation("TaskHierarchy", fields: [parentId], references: [id])
+  subtasks Task[] @relation("TaskHierarchy")
+
+  title       String
+  description String? @db.Text
+
+  status   TaskStatus   @default(TODO)
+  priority TaskPriority @default(MEDIUM)
+
+  // Dates
+  dueDate     DateTime?
+  startDate   DateTime?
+  completedAt DateTime?
+
+  // Assignment
+  assigneeId String?
+  assignee   User?   @relation("AssignedTo", fields: [assigneeId], references: [id])
 
   createdById String
   createdBy   User   @relation("TaskCreatedBy", fields: [createdById], references: [id])
 
-  completedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  // Categorization
+  category String?
+  tags     String[]
+
+  // Custom fields
+  customFields Json?
+
+  // Ordering
+  sortOrder Int @default(0)
+
+  // Checklists
+  checklists TaskChecklist[]
+
+  // Comments
+  comments TaskComment[]
+
+  // Time tracking
+  estimatedHours Decimal? @db.Decimal(6, 2)
+  actualHours    Decimal? @db.Decimal(6, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([dealId])
-  @@index([assignedToId])
+  @@index([assigneeId])
   @@index([status])
+  @@index([dueDate])
+  @@index([milestoneId])
 }
 
-model Note {
-  id      String @id @default(cuid())
+model TaskChecklist {
+  id String @id @default(cuid())
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  name  String
+  items TaskChecklistItem[]
+
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TaskChecklistItem {
+  id String @id @default(cuid())
+
+  checklistId String
+  checklist   TaskChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  text        String
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TaskComment {
+  id String @id @default(cuid())
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
   content String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// DOCUMENTS
+// ============================================
+
+model Document {
+  id String @id @default(cuid())
+
+  dealId String
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  folderId String?
+  folder   DocumentFolder? @relation(fields: [folderId], references: [id])
+
+  name         String
+  originalName String
+  description  String?
+
+  category    DocumentCategory @default(OTHER)
+  subcategory String?
+
+  // File details
+  fileType String
+  fileSize Int
+  fileUrl  String
+  fileKey  String
+
+  // Version control
+  version           Int       @default(1)
+  previousVersionId String?
+  previousVersion   Document? @relation("DocumentVersions", fields: [previousVersionId], references: [id])
+  newerVersions     Document[] @relation("DocumentVersions")
+
+  // Metadata
+  uploadedById String
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
+
+  // AI analysis flags
+  isAnalyzed        Boolean @default(false)
+  isPrimaryContract Boolean @default(false)
+
+  // Ordering
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dealId])
+  @@index([category])
+  @@index([folderId])
+}
+
+model DocumentFolder {
+  id String @id @default(cuid())
+
+  dealId String
+
+  parentId String?
+  parent   DocumentFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children DocumentFolder[] @relation("FolderHierarchy")
+
+  name        String
+  description String?
+
+  documents Document[]
+
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dealId])
+  @@index([parentId])
+}
+
+// ============================================
+// NOTES
+// ============================================
+
+model Note {
+  id String @id @default(cuid())
 
   dealId String
   deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
+
+  title     String?
+  content   String  @db.Text
+  plainText String? @db.Text
+
+  isPinned Boolean @default(false)
+
+  // Categorization
+  category String?
+  tags     String[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -264,19 +656,197 @@ model Note {
   @@index([authorId])
 }
 
-model Document {
-  id       String  @id @default(cuid())
-  name     String
-  fileName String
-  fileUrl  String
-  fileSize Int
-  mimeType String
-  category String?
+// ============================================
+// FINANCIAL TRACKING
+// ============================================
 
-  dealId String
+model DealFinancials {
+  id String @id @default(cuid())
+
+  dealId String @unique
   deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
 
-  uploadedAt DateTime @default(now())
+  // Purchase Price
+  contractPrice Decimal? @db.Decimal(14, 2)
+  currentPrice  Decimal? @db.Decimal(14, 2)
+
+  // Deposits
+  deposits Deposit[]
+
+  // Budget tracking
+  dueDiligenceBudget Decimal? @db.Decimal(14, 2)
+  dueDiligenceSpent  Decimal? @db.Decimal(14, 2)
+
+  // Closing costs
+  estimatedClosingCosts Decimal? @db.Decimal(14, 2)
+  actualClosingCosts    Decimal? @db.Decimal(14, 2)
+
+  // Custom line items
+  lineItems FinancialLineItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Deposit {
+  id String @id @default(cuid())
+
+  financialsId String
+  financials   DealFinancials @relation(fields: [financialsId], references: [id], onDelete: Cascade)
+
+  name    String
+  amount  Decimal @db.Decimal(14, 2)
+  dueDate DateTime
+
+  status     DepositStatus @default(SCHEDULED)
+  paidDate   DateTime?
+  paidAmount Decimal?      @db.Decimal(14, 2)
+
+  condition String?
+  notes     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FinancialLineItem {
+  id String @id @default(cuid())
+
+  financialsId String
+  financials   DealFinancials @relation(fields: [financialsId], references: [id], onDelete: Cascade)
+
+  category    String
+  name        String
+  description String?
+
+  estimatedAmount Decimal? @db.Decimal(14, 2)
+  actualAmount    Decimal? @db.Decimal(14, 2)
+
+  vendor        String?
+  invoiceNumber String?
+  paidDate      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// NOTIFICATIONS & PREFERENCES
+// ============================================
+
+model UserPreferences {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Notification preferences
+  emailNotifications Boolean @default(true)
+  taskReminders      Boolean @default(true)
+  deadlineAlerts     Boolean @default(true)
+
+  notificationFrequency NotificationFrequency @default(REALTIME)
+  dailySummaryTime      String?
+  weeklySummaryDay      Int?
+
+  // UI preferences
+  defaultDealView String @default("board")
+  defaultTaskView String @default("list")
+  timezone        String @default("America/Los_Angeles")
+  dateFormat      String @default("MM/dd/yyyy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    String
+  title   String
+  message String
+  link    String?
+
+  isRead Boolean   @default(false)
+  readAt DateTime?
+
+  // Related entity
+  entityType String?
+  entityId   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+// ============================================
+// REPORTS
+// ============================================
+
+model ReportTemplate {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  type        String
+
+  config Json
+
+  isSystem Boolean @default(false)
+
+  createdById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SavedReport {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+
+  templateId String?
+
+  config Json
+
+  createdById String
+
+  isScheduled Boolean  @default(false)
+  schedule    String?
+  recipients  String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// ACTIVITY LOG
+// ============================================
+
+model ActivityLog {
+  id String @id @default(cuid())
+
+  userId String?
+  dealId String?
+
+  action     String
+  entityType String
+  entityId   String
+  entityName String?
+
+  changes  Json?
+  metadata Json?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
 
   @@index([dealId])
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }

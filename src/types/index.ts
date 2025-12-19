@@ -1,40 +1,46 @@
-// Common types used throughout the application
+// Re-export all Prisma types
+export type {
+  User,
+  Firm,
+  Client,
+  ClientUser,
+  Deal,
+  TransactionSummary,
+  Timeline,
+  Milestone,
+  Task,
+  TaskChecklist,
+  TaskChecklistItem,
+  TaskComment,
+  Document,
+  DocumentFolder,
+  Note,
+  DealFinancials,
+  Deposit,
+  FinancialLineItem,
+  UserPreferences,
+  Notification,
+  ReportTemplate,
+  SavedReport,
+  ActivityLog,
+} from "@prisma/client";
 
-export type DealStatus = "active" | "pending" | "closed" | "cancelled" | "on_hold";
+// Re-export all enums
+export {
+  UserRole,
+  UserStatus,
+  DealType,
+  DealStatus,
+  PropertyType,
+  MilestoneStatus,
+  TaskStatus,
+  TaskPriority,
+  DocumentCategory,
+  DepositStatus,
+  NotificationFrequency,
+} from "@prisma/client";
 
-export type TaskStatus = "todo" | "in_progress" | "completed" | "blocked";
-
-export type TaskPriority = "low" | "medium" | "high" | "urgent";
-
-export type DocumentCategory =
-  | "contract"
-  | "amendment"
-  | "addendum"
-  | "financial"
-  | "legal"
-  | "inspection"
-  | "environmental"
-  | "title"
-  | "survey"
-  | "other";
-
-export type UserRole = "admin" | "manager" | "analyst" | "viewer";
-
-export interface PaginationParams {
-  page: number;
-  limit: number;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
+// Re-export derived types
+export * from "./api";
+export * from "./forms";
+export * from "./filters";
