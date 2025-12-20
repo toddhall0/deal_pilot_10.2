@@ -54,14 +54,8 @@ const dealFormSchema = z.object({
   propertyState: z.string().max(50).optional(),
   propertyZip: z.string().max(20).optional(),
   propertyCounty: z.string().max(100).optional(),
-  acreage: z.union([
-    z.string().transform((val) => val === "" ? undefined : parseFloat(val)),
-    z.number().positive(),
-  ]).optional(),
-  squareFootage: z.union([
-    z.string().transform((val) => val === "" ? undefined : parseFloat(val)),
-    z.number().positive(),
-  ]).optional(),
+  acreage: z.string().optional(),
+  squareFootage: z.string().optional(),
 });
 
 type DealFormValues = z.infer<typeof dealFormSchema>;
@@ -126,8 +120,8 @@ export default function NewDealPage() {
       propertyState: "",
       propertyZip: "",
       propertyCounty: "",
-      acreage: undefined,
-      squareFootage: undefined,
+      acreage: "",
+      squareFootage: "",
     },
   });
 
@@ -163,7 +157,12 @@ export default function NewDealPage() {
 
   const onSubmit = async (data: DealFormValues) => {
     try {
-      const result = await createDeal.mutateAsync(data);
+      const submitData = {
+        ...data,
+        acreage: data.acreage ? parseFloat(data.acreage) : undefined,
+        squareFootage: data.squareFootage ? parseFloat(data.squareFootage) : undefined,
+      };
+      const result = await createDeal.mutateAsync(submitData);
       toast({
         title: "Deal created",
         description: "Your new deal has been created successfully.",
