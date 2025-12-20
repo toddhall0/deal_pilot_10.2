@@ -6,9 +6,9 @@ type ViewMode = "table" | "card" | "board";
 
 interface DealFiltersState {
   status: DealStatus[];
-  type: DealType | null;
+  type?: DealType;
   propertyType: PropertyType[];
-  clientId: string | null;
+  clientId?: string;
   search: string;
 }
 
@@ -42,9 +42,9 @@ interface DealStore {
 
 const defaultFilters: DealFiltersState = {
   status: [],
-  type: null,
+  type: undefined,
   propertyType: [],
-  clientId: null,
+  clientId: undefined,
   search: "",
 };
 
