@@ -4,13 +4,19 @@ import { auth } from "@/lib/auth";
 import {
   deleteFile,
   getSignedDownloadUrl,
-  uploadFile,
-  generateFileKey,
-  isValidFileType,
-  MAX_FILE_SIZE,
-  formatFileSize,
 } from "@/lib/storage";
-import { DocumentCategory, Prisma } from "@prisma/client";
+
+type DocumentCategory =
+  | "CONTRACT"
+  | "AMENDMENT"
+  | "TITLE"
+  | "SURVEY"
+  | "ENVIRONMENTAL"
+  | "FINANCIAL"
+  | "LEGAL"
+  | "CORRESPONDENCE"
+  | "CLOSING"
+  | "OTHER";
 
 // GET /api/deals/[dealId]/documents/[docId] - Get document details
 export async function GET(
@@ -86,7 +92,7 @@ export async function PATCH(
     }
 
     // Build update data
-    const updateData: Prisma.DocumentUpdateInput = {};
+    const updateData: Record<string, unknown> = {};
 
     if (body.name !== undefined) updateData.name = body.name;
     if (body.description !== undefined) updateData.description = body.description;

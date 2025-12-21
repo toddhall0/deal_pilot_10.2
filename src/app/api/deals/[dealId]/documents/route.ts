@@ -6,10 +6,20 @@ import {
   generateFileKey,
   isValidFileType,
   MAX_FILE_SIZE,
-  getFileTypeCategory,
   formatFileSize,
 } from "@/lib/storage";
-import { DocumentCategory } from "@prisma/client";
+
+type DocumentCategory =
+  | "CONTRACT"
+  | "AMENDMENT"
+  | "TITLE"
+  | "SURVEY"
+  | "ENVIRONMENTAL"
+  | "FINANCIAL"
+  | "LEGAL"
+  | "CORRESPONDENCE"
+  | "CLOSING"
+  | "OTHER";
 
 // GET /api/deals/[dealId]/documents - List documents
 export async function GET(
