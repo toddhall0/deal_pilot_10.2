@@ -93,7 +93,7 @@ export default function DealsPage() {
 
   const deals = data?.deals || [];
   const total = data?.pagination?.total || 0;
-  const hasFilters = filters.search || filters.status.length > 0 || filters.propertyType.length > 0;
+  const hasFilters = Boolean(filters.search) || filters.status.length > 0 || filters.propertyType.length > 0;
 
   return (
     <div className="space-y-6">
