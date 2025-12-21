@@ -44,6 +44,7 @@ import {
 import { useState } from "react";
 import { useDeal, useDealMutations } from "@/hooks/use-deals";
 import { useToast } from "@/hooks/use-toast";
+import { DocumentsTab } from "@/components/documents";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -349,20 +350,7 @@ export default function DealDetailPage({ params }: PageProps) {
         </TabsContent>
 
         <TabsContent value="documents">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Documents</CardTitle>
-                <CardDescription>Manage documents for this deal</CardDescription>
-              </div>
-              <Button>Upload Document</Button>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground py-8">
-                No documents yet. Upload your first document to get started.
-              </p>
-            </CardContent>
-          </Card>
+          <DocumentsTab dealId={id} />
         </TabsContent>
 
         <TabsContent value="notes">
