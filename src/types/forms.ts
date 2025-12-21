@@ -6,7 +6,7 @@ import type {
   TaskPriority,
   DocumentCategory,
   MilestoneStatus,
-} from "@prisma/client";
+} from "@/types/prisma";
 
 // ============================================
 // DEAL FORM INPUTS

@@ -1,10 +1,12 @@
 import { z } from "zod";
 
 const DepositStatusValues = [
-  "PENDING",
-  "RECEIVED",
-  "RELEASED",
+  "SCHEDULED",
+  "DUE",
+  "PAID",
+  "APPLIED_TO_PURCHASE",
   "REFUNDED",
+  "FORFEITED",
 ] as const;
 
 // ============================================

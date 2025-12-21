@@ -3,6 +3,7 @@ import { z } from "zod";
 const DocumentCategoryValues = [
   "CONTRACT",
   "AMENDMENT",
+  "DUE_DILIGENCE",
   "TITLE",
   "SURVEY",
   "ENVIRONMENTAL",

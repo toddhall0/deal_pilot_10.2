@@ -4,19 +4,14 @@ import { z } from "zod";
 const DealTypeValues = [
   "ACQUISITION",
   "DISPOSITION",
-  "LEASE",
-  "DEVELOPMENT",
-  "FINANCING",
-  "JOINT_VENTURE",
-  "OTHER",
 ] as const;
 
 const DealStatusValues = [
-  "PROSPECT",
+  "DRAFT",
   "ACTIVE",
   "UNDER_CONTRACT",
-  "DUE_DILIGENCE",
-  "CLOSING",
+  "IN_DUE_DILIGENCE",
+  "PENDING_CLOSING",
   "CLOSED",
   "TERMINATED",
   "ON_HOLD",

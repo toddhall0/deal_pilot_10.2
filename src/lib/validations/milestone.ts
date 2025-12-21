@@ -5,6 +5,8 @@ const MilestoneStatusValues = [
   "IN_PROGRESS",
   "COMPLETED",
   "MISSED",
+  "WAIVED",
+  "NOT_APPLICABLE",
 ] as const;
 
 // ============================================

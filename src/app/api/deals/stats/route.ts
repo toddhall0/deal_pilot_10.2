@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { Prisma } from "@prisma/client";
 
 // GET /api/deals/stats - Get deal statistics
 export async function GET(request: NextRequest) {
@@ -12,7 +11,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build where clause based on user role
-    const where: Prisma.DealWhereInput = {};
+    const where: Record<string, unknown> = {};
     if (session.user.role === "CLIENT" && session.user.clientId) {
       where.clientId = session.user.clientId;
     } else if (session.user.role === "ATTORNEY" && session.user.firmId) {

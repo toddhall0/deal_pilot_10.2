@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { dealCreateSchema } from "@/lib/validations/deal";
 import { generateDealNumber } from "@/lib/db-utils";
-import { Prisma, DealStatus, DealType, PropertyType } from "@prisma/client";
+import type { DealStatus, DealType, PropertyType } from "@/types/prisma";
 
 // GET /api/deals - List deals with filtering
 export async function GET(request: NextRequest) {
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: Prisma.DealWhereInput = {};
+    const where: Record<string, unknown> = {};
 
     // Status filter
     const status = searchParams.get("status");
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     // Sorting
     const sortField = searchParams.get("sortField") || "createdAt";
     const sortOrder = (searchParams.get("sortOrder") || "desc") as "asc" | "desc";
-    const orderBy: Prisma.DealOrderByWithRelationInput = { [sortField]: sortOrder };
+    const orderBy: Record<string, "asc" | "desc"> = { [sortField]: sortOrder };
 
     // Execute query
     const [deals, total] = await Promise.all([

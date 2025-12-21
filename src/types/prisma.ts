@@ -3,19 +3,14 @@
 
 export type DealType =
   | "ACQUISITION"
-  | "DISPOSITION"
-  | "LEASE"
-  | "DEVELOPMENT"
-  | "FINANCING"
-  | "JOINT_VENTURE"
-  | "OTHER";
+  | "DISPOSITION";
 
 export type DealStatus =
-  | "PROSPECT"
+  | "DRAFT"
   | "ACTIVE"
   | "UNDER_CONTRACT"
-  | "DUE_DILIGENCE"
-  | "CLOSING"
+  | "IN_DUE_DILIGENCE"
+  | "PENDING_CLOSING"
   | "CLOSED"
   | "TERMINATED"
   | "ON_HOLD";
@@ -34,8 +29,10 @@ export type PropertyType =
   | "OTHER";
 
 export type TaskStatus =
-  | "PENDING"
+  | "TODO"
   | "IN_PROGRESS"
+  | "IN_REVIEW"
+  | "BLOCKED"
   | "COMPLETED"
   | "CANCELLED";
 
@@ -48,6 +45,7 @@ export type TaskPriority =
 export type DocumentCategory =
   | "CONTRACT"
   | "AMENDMENT"
+  | "DUE_DILIGENCE"
   | "TITLE"
   | "SURVEY"
   | "ENVIRONMENTAL"
@@ -61,20 +59,21 @@ export type MilestoneStatus =
   | "PENDING"
   | "IN_PROGRESS"
   | "COMPLETED"
-  | "MISSED";
+  | "MISSED"
+  | "WAIVED"
+  | "NOT_APPLICABLE";
 
 export type DepositStatus =
-  | "PENDING"
-  | "RECEIVED"
-  | "RELEASED"
-  | "REFUNDED";
+  | "SCHEDULED"
+  | "DUE"
+  | "PAID"
+  | "APPLIED_TO_PURCHASE"
+  | "REFUNDED"
+  | "FORFEITED";
 
 export type UserRole =
   | "ADMIN"
-  | "PARTNER"
-  | "ASSOCIATE"
-  | "PARALEGAL"
-  | "ASSISTANT"
+  | "ATTORNEY"
   | "CLIENT";
 
 export type UserStatus =

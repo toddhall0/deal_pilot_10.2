@@ -12,7 +12,8 @@ import type {
   DealFinancials,
   Notification,
   ActivityLog,
-} from "@prisma/client";
+  DocumentFolder,
+} from "./models";
 
 // ============================================
 // PAGINATION
@@ -126,15 +127,11 @@ export interface TaskChecklistWithItems {
 export interface DocumentWithRelations extends Document {
   deal: Pick<Deal, "id" | "name" | "dealNumber">;
   uploadedBy: SafeUser;
-  folder?: Pick<DocumentFolder, "id" | "name"> | null;
+  folder?: Pick<DocumentFolderWithRelations, "id" | "name"> | null;
 }
 
-export interface DocumentFolder {
-  id: string;
-  name: string;
-  description?: string | null;
-  parentId?: string | null;
-  children?: DocumentFolder[];
+export interface DocumentFolderWithRelations extends DocumentFolder {
+  children?: DocumentFolderWithRelations[];
   documents?: Document[];
   _count?: {
     documents: number;

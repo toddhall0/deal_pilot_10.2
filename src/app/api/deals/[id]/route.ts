@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { dealUpdateSchema } from "@/lib/validations/deal";
@@ -149,7 +148,7 @@ export async function PATCH(
           entityType: "DEAL",
           entityId: deal.id,
           entityName: deal.name,
-          changes: changes as Prisma.InputJsonValue,
+          changes: changes as Record<string, unknown>,
         },
       });
     }

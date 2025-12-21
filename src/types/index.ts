@@ -1,32 +1,5 @@
-// Re-export all Prisma types
+// Re-export all enum types from local definitions
 export type {
-  User,
-  Firm,
-  Client,
-  ClientUser,
-  Deal,
-  TransactionSummary,
-  Timeline,
-  Milestone,
-  Task,
-  TaskChecklist,
-  TaskChecklistItem,
-  TaskComment,
-  Document,
-  DocumentFolder,
-  Note,
-  DealFinancials,
-  Deposit,
-  FinancialLineItem,
-  UserPreferences,
-  Notification,
-  ReportTemplate,
-  SavedReport,
-  ActivityLog,
-} from "@prisma/client";
-
-// Re-export all enums
-export {
   UserRole,
   UserStatus,
   DealType,
@@ -37,8 +10,12 @@ export {
   TaskPriority,
   DocumentCategory,
   DepositStatus,
-  NotificationFrequency,
-} from "@prisma/client";
+  ActivityAction,
+  NotificationType,
+} from "./prisma";
+
+// Re-export model types
+export * from "./models";
 
 // Re-export derived types
 export * from "./api";

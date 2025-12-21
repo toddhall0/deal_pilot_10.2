@@ -1,5 +1,23 @@
-import { Prisma } from "@prisma/client";
 import type { SortDirection, PaginatedResponse } from "@/types";
+
+// Local type definitions for Prisma filter types
+type QueryMode = "default" | "insensitive";
+
+interface StringFilter {
+  contains?: string;
+  mode?: QueryMode;
+  startsWith?: string;
+  endsWith?: string;
+  equals?: string;
+}
+
+interface DateTimeFilter {
+  gte?: Date;
+  lte?: Date;
+  gt?: Date;
+  lt?: Date;
+  equals?: Date;
+}
 
 // ============================================
 // PAGINATION UTILITIES
@@ -77,30 +95,30 @@ export function getSortParams<T extends string>(
 export function buildSearchFilter(
   search: string | undefined,
   fields: string[]
-): Prisma.StringFilter | undefined {
+): StringFilter | undefined {
   if (!search || search.trim() === "") return undefined;
 
   const searchTerm = search.trim();
-  
+
   return {
     contains: searchTerm,
-    mode: "insensitive" as Prisma.QueryMode,
+    mode: "insensitive" as QueryMode,
   };
 }
 
 export function buildSearchOrFilter(
   search: string | undefined,
   fields: string[]
-): { OR: Record<string, Prisma.StringFilter>[] } | undefined {
+): { OR: Record<string, StringFilter>[] } | undefined {
   if (!search || search.trim() === "") return undefined;
 
   const searchTerm = search.trim();
-  
+
   return {
     OR: fields.map((field) => ({
       [field]: {
         contains: searchTerm,
-        mode: "insensitive" as Prisma.QueryMode,
+        mode: "insensitive" as QueryMode,
       },
     })),
   };
@@ -121,14 +139,14 @@ export function buildEnumFilter<T>(
 export function buildDateRangeFilter(
   from: Date | undefined,
   to: Date | undefined
-): Prisma.DateTimeFilter | undefined {
+): DateTimeFilter | undefined {
   if (!from && !to) return undefined;
 
-  const filter: Prisma.DateTimeFilter = {};
-  
+  const filter: DateTimeFilter = {};
+
   if (from) filter.gte = from;
   if (to) filter.lte = to;
-  
+
   return filter;
 }
 

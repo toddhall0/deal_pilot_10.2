@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 const TaskStatusValues = [
-  "PENDING",
+  "TODO",
   "IN_PROGRESS",
+  "IN_REVIEW",
+  "BLOCKED",
   "COMPLETED",
   "CANCELLED",
 ] as const;
@@ -23,7 +25,7 @@ export const taskCreateSchema = z.object({
   title: z.string().min(1, "Task title is required").max(200),
   description: z.string().max(5000).optional(),
   priority: z.enum(TaskPriorityValues).default("MEDIUM"),
-  status: z.enum(TaskStatusValues).default("PENDING"),
+  status: z.enum(TaskStatusValues).default("TODO"),
   dueDate: z.coerce.date().optional(),
   startDate: z.coerce.date().optional(),
   assigneeId: z.string().cuid().optional().nullable(),
