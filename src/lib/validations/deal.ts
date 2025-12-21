@@ -24,6 +24,9 @@ export const dealCreateSchema = z.object({
   squareFootage: z.number().positive().optional(),
   lotCount: z.number().int().positive().optional(),
   unitCount: z.number().int().positive().optional(),
+  assessorPin: z.string().max(100).optional(),
+  assessorReportUrl: z.string().url().optional().or(z.literal("")),
+  propertyImageUrl: z.string().url().optional().or(z.literal("")),
 });
 
 export const dealUpdateSchema = dealCreateSchema.partial().extend({

@@ -283,6 +283,35 @@ export default function DealDetailPage({ params }: PageProps) {
                     </div>
                   )}
                 </div>
+                {deal.assessorPin && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Assessor&apos;s PIN</p>
+                    <p className="font-medium">{deal.assessorPin}</p>
+                  </div>
+                )}
+                {deal.assessorReportUrl && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Assessor&apos;s Report</p>
+                    <a
+                      href={deal.assessorReportUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      View Report →
+                    </a>
+                  </div>
+                )}
+                {deal.propertyImageUrl && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">Property Image</p>
+                    <img
+                      src={deal.propertyImageUrl}
+                      alt="Property"
+                      className="w-full max-h-48 rounded-md object-cover"
+                    />
+                  </div>
+                )}
                 {!deal.propertyName && !deal.propertyAddress && (
                   <p className="text-sm text-muted-foreground">No property details added yet.</p>
                 )}

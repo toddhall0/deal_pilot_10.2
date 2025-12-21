@@ -56,6 +56,9 @@ const dealFormSchema = z.object({
   propertyCounty: z.string().max(100).optional(),
   acreage: z.string().optional(),
   squareFootage: z.string().optional(),
+  assessorPin: z.string().max(100).optional(),
+  assessorReportUrl: z.string().url("Invalid URL format").optional().or(z.literal("")),
+  propertyImageUrl: z.string().url("Invalid URL format").optional().or(z.literal("")),
 });
 
 type DealFormValues = z.infer<typeof dealFormSchema>;
@@ -122,6 +125,9 @@ export default function NewDealPage() {
       propertyCounty: "",
       acreage: "",
       squareFootage: "",
+      assessorPin: "",
+      assessorReportUrl: "",
+      propertyImageUrl: "",
     },
   });
 
@@ -161,6 +167,8 @@ export default function NewDealPage() {
         ...data,
         acreage: data.acreage ? parseFloat(data.acreage) : undefined,
         squareFootage: data.squareFootage ? parseFloat(data.squareFootage) : undefined,
+        assessorReportUrl: data.assessorReportUrl || undefined,
+        propertyImageUrl: data.propertyImageUrl || undefined,
       };
       const result = await createDeal.mutateAsync(submitData);
       toast({
@@ -479,6 +487,53 @@ export default function NewDealPage() {
                     )}
                   />
                 </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="assessorPin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Assessor&apos;s PIN</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., 12-34-567-890" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="assessorReportUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Assessor&apos;s Report URL</FormLabel>
+                        <FormControl>
+                          <Input type="url" placeholder="https://..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="propertyImageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Property Image URL</FormLabel>
+                      <FormControl>
+                        <Input type="url" placeholder="https://..." {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Enter a URL to a property image. Image upload coming soon.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
           )}
@@ -553,6 +608,32 @@ export default function NewDealPage() {
                           {!formValues.acreage && !formValues.squareFootage && "—"}
                         </dd>
                       </div>
+                      <div>
+                        <dt className="text-sm text-muted-foreground">Assessor&apos;s PIN</dt>
+                        <dd className="text-sm font-medium">{formValues.assessorPin || "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-sm text-muted-foreground">Assessor&apos;s Report</dt>
+                        <dd className="text-sm font-medium">
+                          {formValues.assessorReportUrl ? (
+                            <a href={formValues.assessorReportUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                              View Report
+                            </a>
+                          ) : "—"}
+                        </dd>
+                      </div>
+                      {formValues.propertyImageUrl && (
+                        <div className="md:col-span-2">
+                          <dt className="text-sm text-muted-foreground">Property Image</dt>
+                          <dd className="mt-1">
+                            <img
+                              src={formValues.propertyImageUrl}
+                              alt="Property"
+                              className="max-h-32 rounded-md object-cover"
+                            />
+                          </dd>
+                        </div>
+                      )}
                     </dl>
                   </div>
                 </div>

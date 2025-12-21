@@ -287,6 +287,13 @@ model Deal {
   lotCount      Int?
   unitCount     Int?
 
+  // Assessor Information
+  assessorPin        String?
+  assessorReportUrl  String?
+
+  // Property Image
+  propertyImageUrl   String?
+
   // Relationships
   clientId String
   client   Client @relation(fields: [clientId], references: [id])
