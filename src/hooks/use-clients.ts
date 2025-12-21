@@ -6,7 +6,7 @@ interface Client {
   id: string;
   name: string;
   email: string | null;
-  company: string | null;
+  type: string | null;
   _count: { deals: number };
 }
 

@@ -25,7 +25,7 @@ export async function GET(request: Request) {
         id: true,
         name: true,
         email: true,
-        company: true,
+        type: true,
         _count: {
           select: { deals: true },
         },
