@@ -148,7 +148,7 @@ export async function PATCH(
           entityType: "DEAL",
           entityId: deal.id,
           entityName: deal.name,
-          changes: changes as Record<string, unknown>,
+          changes: JSON.parse(JSON.stringify(changes)),
         },
       });
     }
