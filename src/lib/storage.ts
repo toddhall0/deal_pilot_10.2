@@ -8,16 +8,23 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-// Initialize S3 client (works with AWS S3 and Cloudflare R2)
-const s3Client = new S3Client({
-  region: process.env.S3_REGION || "auto",
-  endpoint: process.env.S3_ENDPOINT,
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "",
-  },
-  forcePathStyle: true, // Required for R2 and MinIO
-});
+// Lazy-initialize S3 client to avoid module load errors
+let s3Client: S3Client | null = null;
+
+function getS3Client(): S3Client {
+  if (!s3Client) {
+    s3Client = new S3Client({
+      region: process.env.S3_REGION || "auto",
+      endpoint: process.env.S3_ENDPOINT,
+      credentials: {
+        accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "",
+      },
+      forcePathStyle: true, // Required for R2 and MinIO
+    });
+  }
+  return s3Client;
+}
 
 const BUCKET_NAME = process.env.S3_BUCKET_NAME || "deal-pilot-documents";
 
@@ -112,7 +119,7 @@ export async function uploadFile(
     Metadata: metadata,
   });
 
-  await s3Client.send(command);
+  await getS3Client().send(command);
 
   // Generate a signed URL for immediate access
   const url = await getSignedDownloadUrl(key);
@@ -130,7 +137,7 @@ export async function getSignedDownloadUrl(
     Key: key,
   });
 
-  return getSignedUrl(s3Client, command, { expiresIn });
+  return getSignedUrl(getS3Client(), command, { expiresIn });
 }
 
 // Generate signed URL for uploading (for direct client uploads)
@@ -145,7 +152,7 @@ export async function getSignedUploadUrl(
     ContentType: contentType,
   });
 
-  return getSignedUrl(s3Client, command, { expiresIn });
+  return getSignedUrl(getS3Client(), command, { expiresIn });
 }
 
 // Delete file from S3/R2
@@ -155,7 +162,7 @@ export async function deleteFile(key: string): Promise<void> {
     Key: key,
   });
 
-  await s3Client.send(command);
+  await getS3Client().send(command);
 }
 
 // Delete multiple files
@@ -174,7 +181,7 @@ export async function copyFile(
     Key: destinationKey,
   });
 
-  await s3Client.send(command);
+  await getS3Client().send(command);
 }
 
 // List files in a path
@@ -184,7 +191,7 @@ export async function listFiles(prefix: string): Promise<string[]> {
     Prefix: prefix,
   });
 
-  const response = await s3Client.send(command);
+  const response = await getS3Client().send(command);
   return response.Contents?.map((obj) => obj.Key || "") || [];
 }
 
@@ -195,7 +202,7 @@ export async function getFile(key: string): Promise<Buffer> {
     Key: key,
   });
 
-  const response = await s3Client.send(command);
+  const response = await getS3Client().send(command);
   const stream = response.Body as ReadableStream;
 
   // Convert stream to buffer
@@ -220,4 +227,4 @@ export function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 }
 
-export { s3Client, BUCKET_NAME };
+export { getS3Client, BUCKET_NAME };
