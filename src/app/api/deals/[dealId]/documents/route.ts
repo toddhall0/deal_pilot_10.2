@@ -69,6 +69,13 @@ export async function GET(
       },
     });
 
+    // Add mimeType alias for fileType (for frontend compatibility)
+    const documentsWithMimeType = documents.map((doc) => ({
+      ...doc,
+      mimeType: doc.fileType,
+      url: doc.fileUrl,
+    }));
+
     // Get folders for this deal
     const folders = await prisma.documentFolder.findMany({
       where: { dealId },
@@ -79,7 +86,7 @@ export async function GET(
     });
 
     return NextResponse.json({
-      documents,
+      documents: documentsWithMimeType,
       folders,
     });
   } catch (error) {
@@ -182,7 +189,12 @@ export async function POST(
           },
         });
 
-        uploadedDocuments.push(document);
+        // Add mimeType and url aliases for frontend compatibility
+        uploadedDocuments.push({
+          ...document,
+          mimeType: document.fileType,
+          url: document.fileUrl,
+        });
 
         // Log activity
         await prisma.activityLog.create({

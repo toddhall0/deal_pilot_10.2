@@ -49,6 +49,8 @@ export async function GET(
 
     return NextResponse.json({
       ...document,
+      mimeType: document.fileType,
+      url: downloadUrl,
       downloadUrl,
     });
   } catch (error) {
@@ -119,7 +121,11 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json(document);
+    return NextResponse.json({
+      ...document,
+      mimeType: document.fileType,
+      url: document.fileUrl,
+    });
   } catch (error) {
     console.error("Error updating document:", error);
     return NextResponse.json(
