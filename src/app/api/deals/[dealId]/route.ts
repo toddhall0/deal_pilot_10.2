@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { dealUpdateSchema } from "@/lib/validations/deal";
 
-// GET /api/deals/[id] - Get single deal
+// GET /api/deals/[dealId] - Get single deal
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ dealId: string }> }
 ) {
   try {
     const session = await auth();
@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await params;
+    const { dealId: id } = await params;
 
     const deal = await prisma.deal.findUnique({
       where: { id },
@@ -86,10 +86,10 @@ export async function GET(
   }
 }
 
-// PATCH /api/deals/[id] - Update deal
+// PATCH /api/deals/[dealId] - Update deal
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ dealId: string }> }
 ) {
   try {
     const session = await auth();
@@ -101,7 +101,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { id } = await params;
+    const { dealId: id } = await params;
     const body = await request.json();
     const validatedData = dealUpdateSchema.parse(body);
 
@@ -163,10 +163,10 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/deals/[id] - Delete deal (admin only)
+// DELETE /api/deals/[dealId] - Delete deal (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ dealId: string }> }
 ) {
   try {
     const session = await auth();
@@ -179,7 +179,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden - Admin only" }, { status: 403 });
     }
 
-    const { id } = await params;
+    const { dealId: id } = await params;
 
     const deal = await prisma.deal.findUnique({
       where: { id },
