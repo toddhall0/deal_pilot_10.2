@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { UserRole } from "@prisma/client";
+import type { UserRole } from "@/types/prisma";
 
 export function useRequireAuth(roles?: UserRole[]) {
   const { data: session, status } = useSession();

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { DealStatus, DealType, PropertyType } from "@prisma/client";
+import type { DealStatus, DealType, PropertyType } from "@/types/prisma";
 
 interface DealCardProps {
   deal: {

@@ -1,9 +1,40 @@
 import { z } from "zod";
-import {
-  DealType,
-  DealStatus,
-  PropertyType,
-} from "@prisma/client";
+
+// Define enum values as const arrays for use with z.enum()
+const DealTypeValues = [
+  "ACQUISITION",
+  "DISPOSITION",
+  "LEASE",
+  "DEVELOPMENT",
+  "FINANCING",
+  "JOINT_VENTURE",
+  "OTHER",
+] as const;
+
+const DealStatusValues = [
+  "PROSPECT",
+  "ACTIVE",
+  "UNDER_CONTRACT",
+  "DUE_DILIGENCE",
+  "CLOSING",
+  "CLOSED",
+  "TERMINATED",
+  "ON_HOLD",
+] as const;
+
+const PropertyTypeValues = [
+  "OFFICE",
+  "RETAIL",
+  "INDUSTRIAL",
+  "MULTIFAMILY",
+  "MIXED_USE",
+  "LAND",
+  "HOSPITALITY",
+  "HEALTHCARE",
+  "SELF_STORAGE",
+  "DATA_CENTER",
+  "OTHER",
+] as const;
 
 // ============================================
 // DEAL SCHEMAS
@@ -11,10 +42,10 @@ import {
 
 export const dealCreateSchema = z.object({
   name: z.string().min(1, "Deal name is required").max(200),
-  type: z.nativeEnum(DealType),
+  type: z.enum(DealTypeValues),
   clientId: z.string().cuid("Invalid client ID"),
   propertyName: z.string().max(200).optional(),
-  propertyType: z.nativeEnum(PropertyType).optional(),
+  propertyType: z.enum(PropertyTypeValues).optional(),
   propertyAddress: z.string().max(500).optional(),
   propertyCity: z.string().max(100).optional(),
   propertyState: z.string().max(50).optional(),
@@ -30,15 +61,15 @@ export const dealCreateSchema = z.object({
 });
 
 export const dealUpdateSchema = dealCreateSchema.partial().extend({
-  status: z.nativeEnum(DealStatus).optional(),
+  status: z.enum(DealStatusValues).optional(),
   closedAt: z.coerce.date().optional(),
 });
 
 export const dealFilterSchema = z.object({
   search: z.string().optional(),
-  status: z.union([z.nativeEnum(DealStatus), z.array(z.nativeEnum(DealStatus))]).optional(),
-  type: z.nativeEnum(DealType).optional(),
-  propertyType: z.union([z.nativeEnum(PropertyType), z.array(z.nativeEnum(PropertyType))]).optional(),
+  status: z.union([z.enum(DealStatusValues), z.array(z.enum(DealStatusValues))]).optional(),
+  type: z.enum(DealTypeValues).optional(),
+  propertyType: z.union([z.enum(PropertyTypeValues), z.array(z.enum(PropertyTypeValues))]).optional(),
   clientId: z.string().cuid().optional(),
   createdById: z.string().cuid().optional(),
   propertyState: z.string().optional(),

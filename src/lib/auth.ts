@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { verifyPassword } from "@/lib/password";
-import { UserRole, UserStatus } from "@prisma/client";
+import type { UserRole, UserStatus } from "@/types/prisma";
 
 declare module "next-auth" {
   interface Session {

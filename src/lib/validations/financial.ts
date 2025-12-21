@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { DepositStatus } from "@prisma/client";
+
+const DepositStatusValues = [
+  "PENDING",
+  "RECEIVED",
+  "RELEASED",
+  "REFUNDED",
+] as const;
 
 // ============================================
 // FINANCIAL SCHEMAS
@@ -24,7 +30,7 @@ export const depositCreateSchema = z.object({
 });
 
 export const depositUpdateSchema = depositCreateSchema.partial().extend({
-  status: z.nativeEnum(DepositStatus).optional(),
+  status: z.enum(DepositStatusValues).optional(),
   paidDate: z.coerce.date().optional().nullable(),
   paidAmount: z.number().positive().max(99999999999999).optional().nullable(),
 });

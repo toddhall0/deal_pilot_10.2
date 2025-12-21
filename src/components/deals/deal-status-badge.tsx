@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { DealStatus } from "@prisma/client";
+import type { DealStatus } from "@/types/prisma";
 
 const statusConfig: Record<DealStatus, { label: string; className: string }> = {
   DRAFT: { label: "Draft", className: "bg-gray-100 text-gray-800" },

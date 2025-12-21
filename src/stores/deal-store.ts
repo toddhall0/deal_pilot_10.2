@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { DealStatus, DealType, PropertyType } from "@prisma/client";
+import type { DealStatus, DealType, PropertyType } from "@/types/prisma";
 
 type ViewMode = "table" | "card" | "board";
 

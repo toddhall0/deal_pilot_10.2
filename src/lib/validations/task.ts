@@ -1,5 +1,18 @@
 import { z } from "zod";
-import { TaskStatus, TaskPriority } from "@prisma/client";
+
+const TaskStatusValues = [
+  "PENDING",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
+
+const TaskPriorityValues = [
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "URGENT",
+] as const;
 
 // ============================================
 // TASK SCHEMAS
@@ -9,8 +22,8 @@ export const taskCreateSchema = z.object({
   dealId: z.string().cuid("Invalid deal ID"),
   title: z.string().min(1, "Task title is required").max(200),
   description: z.string().max(5000).optional(),
-  priority: z.nativeEnum(TaskPriority).default(TaskPriority.MEDIUM),
-  status: z.nativeEnum(TaskStatus).default(TaskStatus.TODO),
+  priority: z.enum(TaskPriorityValues).default("MEDIUM"),
+  status: z.enum(TaskStatusValues).default("PENDING"),
   dueDate: z.coerce.date().optional(),
   startDate: z.coerce.date().optional(),
   assigneeId: z.string().cuid().optional().nullable(),
@@ -28,8 +41,8 @@ export const taskUpdateSchema = taskCreateSchema.partial().omit({ dealId: true }
 
 export const taskFilterSchema = z.object({
   search: z.string().optional(),
-  status: z.union([z.nativeEnum(TaskStatus), z.array(z.nativeEnum(TaskStatus))]).optional(),
-  priority: z.union([z.nativeEnum(TaskPriority), z.array(z.nativeEnum(TaskPriority))]).optional(),
+  status: z.union([z.enum(TaskStatusValues), z.array(z.enum(TaskStatusValues))]).optional(),
+  priority: z.union([z.enum(TaskPriorityValues), z.array(z.enum(TaskPriorityValues))]).optional(),
   dealId: z.string().cuid().optional(),
   assigneeId: z.string().cuid().optional().nullable(),
   createdById: z.string().cuid().optional(),

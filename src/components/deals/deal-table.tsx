@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, ArrowUpDown } from "lucide-react";
-import type { DealStatus, DealType, PropertyType } from "@prisma/client";
+import type { DealStatus, DealType, PropertyType } from "@/types/prisma";
 
 interface Deal {
   id: string;

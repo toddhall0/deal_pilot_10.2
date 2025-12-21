@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { UserRole, UserStatus } from "@prisma/client";
+import type { UserRole, UserStatus } from "@/types/prisma";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 

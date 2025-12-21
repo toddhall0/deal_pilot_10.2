@@ -1,5 +1,17 @@
 import { z } from "zod";
-import { DocumentCategory } from "@prisma/client";
+
+const DocumentCategoryValues = [
+  "CONTRACT",
+  "AMENDMENT",
+  "TITLE",
+  "SURVEY",
+  "ENVIRONMENTAL",
+  "FINANCIAL",
+  "LEGAL",
+  "CORRESPONDENCE",
+  "CLOSING",
+  "OTHER",
+] as const;
 
 // ============================================
 // DOCUMENT SCHEMAS
@@ -9,7 +21,7 @@ export const documentUploadSchema = z.object({
   dealId: z.string().cuid("Invalid deal ID"),
   name: z.string().min(1, "Document name is required").max(200),
   description: z.string().max(1000).optional(),
-  category: z.nativeEnum(DocumentCategory).default(DocumentCategory.OTHER),
+  category: z.enum(DocumentCategoryValues).default("OTHER"),
   subcategory: z.string().max(100).optional(),
   folderId: z.string().cuid().optional().nullable(),
 });
@@ -17,7 +29,7 @@ export const documentUploadSchema = z.object({
 export const documentUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(1000).optional().nullable(),
-  category: z.nativeEnum(DocumentCategory).optional(),
+  category: z.enum(DocumentCategoryValues).optional(),
   subcategory: z.string().max(100).optional().nullable(),
   folderId: z.string().cuid().optional().nullable(),
 });
@@ -31,7 +43,7 @@ export const documentFolderSchema = z.object({
 
 export const documentFilterSchema = z.object({
   search: z.string().optional(),
-  category: z.union([z.nativeEnum(DocumentCategory), z.array(z.nativeEnum(DocumentCategory))]).optional(),
+  category: z.union([z.enum(DocumentCategoryValues), z.array(z.enum(DocumentCategoryValues))]).optional(),
   dealId: z.string().cuid().optional(),
   folderId: z.string().cuid().optional().nullable(),
   uploadedById: z.string().cuid().optional(),

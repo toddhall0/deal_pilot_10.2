@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { MilestoneStatus } from "@prisma/client";
+
+const MilestoneStatusValues = [
+  "PENDING",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "MISSED",
+] as const;
 
 // ============================================
 // MILESTONE SCHEMAS
@@ -15,14 +21,14 @@ export const milestoneCreateSchema = z.object({
 });
 
 export const milestoneUpdateSchema = milestoneCreateSchema.partial().omit({ timelineId: true }).extend({
-  status: z.nativeEnum(MilestoneStatus).optional(),
+  status: z.enum(MilestoneStatusValues).optional(),
   completedDate: z.coerce.date().optional().nullable(),
 });
 
 export const milestoneFilterSchema = z.object({
   dealId: z.string().cuid().optional(),
   timelineId: z.string().cuid().optional(),
-  status: z.union([z.nativeEnum(MilestoneStatus), z.array(z.nativeEnum(MilestoneStatus))]).optional(),
+  status: z.union([z.enum(MilestoneStatusValues), z.array(z.enum(MilestoneStatusValues))]).optional(),
   dueDateFrom: z.coerce.date().optional(),
   dueDateTo: z.coerce.date().optional(),
   isOverdue: z.boolean().optional(),

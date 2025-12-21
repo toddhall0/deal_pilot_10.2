@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
+import type { UserRole } from "@/types/prisma";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

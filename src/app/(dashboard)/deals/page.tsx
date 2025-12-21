@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
-import type { DealStatus, PropertyType } from "@prisma/client";
+import type { DealStatus, PropertyType } from "@/types/prisma";
 
 export default function DealsPage() {
   const { toast } = useToast();

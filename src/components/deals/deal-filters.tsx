@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
-import { DealStatus, PropertyType } from "@prisma/client";
+import type { DealStatus, PropertyType } from "@/types/prisma";
 
 interface DealFiltersProps {
   search: string;

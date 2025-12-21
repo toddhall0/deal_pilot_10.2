@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { UserRole } from "@prisma/client";
+import type { UserRole } from "@/types/prisma";
 import { permissions, type Permission } from "@/lib/auth-utils";
 
 export function useAuth() {
