@@ -61,9 +61,10 @@ export async function GET(request: NextRequest) {
     const createdFrom = searchParams.get("createdFrom");
     const createdTo = searchParams.get("createdTo");
     if (createdFrom || createdTo) {
-      where.createdAt = {};
-      if (createdFrom) where.createdAt.gte = new Date(createdFrom);
-      if (createdTo) where.createdAt.lte = new Date(createdTo);
+      const dateFilter: { gte?: Date; lte?: Date } = {};
+      if (createdFrom) dateFilter.gte = new Date(createdFrom);
+      if (createdTo) dateFilter.lte = new Date(createdTo);
+      where.createdAt = dateFilter;
     }
 
     // Authorization: Non-admins see only their deals
