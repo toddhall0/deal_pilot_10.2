@@ -6,9 +6,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DealStatusBadge } from "@/components/deals";
+import { TasksTab } from "@/components/tasks";
+import { TimelineTab } from "@/components/milestones";
+import { NotesTab } from "@/components/notes";
+import { DocumentsTab } from "@/components/documents";
 import {
   ArrowLeft,
   Building2,
@@ -16,7 +20,6 @@ import {
   CheckSquare,
   FileText,
   Clock,
-  DollarSign,
   MoreHorizontal,
   Pencil,
   Trash2,
@@ -43,12 +46,23 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { useDeal, useDealMutations } from "@/hooks/use-deals";
+import { useActivity } from "@/hooks/use-activity";
 import { useToast } from "@/hooks/use-toast";
-import { DocumentsTab } from "@/components/documents";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
+
+const actionLabels: Record<string, string> = {
+  CREATED: "created",
+  UPDATED: "updated",
+  DELETED: "deleted",
+  UPLOADED: "uploaded",
+  DOWNLOADED: "downloaded",
+  STATUS_CHANGED: "changed status of",
+  ASSIGNED: "assigned",
+  COMPLETED: "completed",
+};
 
 export default function DealDetailPage({ params }: PageProps) {
   const { id } = use(params);
@@ -57,6 +71,7 @@ export default function DealDetailPage({ params }: PageProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { data: deal, isLoading, error } = useDeal(id);
+  const { data: activityData } = useActivity(id, 5);
   const { deleteDeal } = useDealMutations();
 
   const handleDelete = async () => {
@@ -94,6 +109,7 @@ export default function DealDetailPage({ params }: PageProps) {
   }
 
   const location = [deal.propertyCity, deal.propertyState].filter(Boolean).join(", ");
+  const activities = activityData?.data || [];
 
   return (
     <div className="space-y-6">
@@ -280,7 +296,7 @@ export default function DealDetailPage({ params }: PageProps) {
                   {deal.squareFootage && (
                     <div>
                       <p className="text-sm text-muted-foreground">Square Footage</p>
-                      <p className="font-medium">{deal.squareFootage.toLocaleString()} sq ft</p>
+                      <p className="font-medium">{Number(deal.squareFootage).toLocaleString()} sq ft</p>
                     </div>
                   )}
                 </div>
@@ -288,29 +304,6 @@ export default function DealDetailPage({ params }: PageProps) {
                   <div>
                     <p className="text-sm text-muted-foreground">Assessor&apos;s PIN</p>
                     <p className="font-medium">{deal.assessorPin}</p>
-                  </div>
-                )}
-                {deal.assessorReportUrl && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Assessor&apos;s Report</p>
-                    <a
-                      href={deal.assessorReportUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline font-medium"
-                    >
-                      View Report →
-                    </a>
-                  </div>
-                )}
-                {deal.propertyImageUrl && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Property Image</p>
-                    <img
-                      src={deal.propertyImageUrl}
-                      alt="Property"
-                      className="w-full max-h-48 rounded-md object-cover"
-                    />
                   </div>
                 )}
                 {!deal.propertyName && !deal.propertyAddress && (
@@ -327,26 +320,50 @@ export default function DealDetailPage({ params }: PageProps) {
               <CardDescription>Latest updates on this deal</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">No recent activity</p>
+              {activities.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No recent activity</p>
+              ) : (
+                <div className="space-y-4">
+                  {activities.map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={activity.user?.avatar || undefined} />
+                        <AvatarFallback>
+                          {activity.user?.name
+                            ?.split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase() || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm">
+                          <span className="font-medium">{activity.user?.name || "System"}</span>{" "}
+                          {actionLabels[activity.action] || activity.action.toLowerCase()}{" "}
+                          <span className="font-medium">{activity.entityType.toLowerCase()}</span>
+                          {activity.entityName && (
+                            <>: &quot;{activity.entityName}&quot;</>
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(activity.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="tasks">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Tasks</CardTitle>
-                <CardDescription>Manage tasks for this deal</CardDescription>
-              </div>
-              <Button>Add Task</Button>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground py-8">
-                No tasks yet. Create your first task to get started.
-              </p>
-            </CardContent>
-          </Card>
+          <TasksTab dealId={id} />
         </TabsContent>
 
         <TabsContent value="documents">
@@ -354,34 +371,11 @@ export default function DealDetailPage({ params }: PageProps) {
         </TabsContent>
 
         <TabsContent value="notes">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Notes</CardTitle>
-                <CardDescription>Notes and comments for this deal</CardDescription>
-              </div>
-              <Button>Add Note</Button>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground py-8">
-                No notes yet. Add your first note to get started.
-              </p>
-            </CardContent>
-          </Card>
+          <NotesTab dealId={id} />
         </TabsContent>
 
         <TabsContent value="timeline">
-          <Card>
-            <CardHeader>
-              <CardTitle>Timeline</CardTitle>
-              <CardDescription>Key milestones and dates</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground py-8">
-                No timeline milestones defined yet.
-              </p>
-            </CardContent>
-          </Card>
+          <TimelineTab dealId={id} />
         </TabsContent>
 
         <TabsContent value="financials">
@@ -405,7 +399,7 @@ export default function DealDetailPage({ params }: PageProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Deal</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deal.name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{deal.name}&quot;? This action cannot be undone.
               All associated tasks, documents, and notes will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
