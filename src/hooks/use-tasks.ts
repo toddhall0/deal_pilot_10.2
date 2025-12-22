@@ -9,7 +9,11 @@ interface Task {
   description?: string | null;
   status: TaskStatus;
   priority: TaskPriority;
+  category?: string | null;
   dueDate?: string | null;
+  startDate?: string | null;
+  estimatedHours?: number | null;
+  completedAt?: string | null;
   assignee?: { id: string; name: string; avatar?: string | null } | null;
   createdBy: { id: string; name: string };
   subtasks?: Task[];
@@ -23,7 +27,10 @@ interface CreateTaskInput {
   description?: string;
   priority?: TaskPriority;
   status?: TaskStatus;
+  category?: string;
   dueDate?: string;
+  startDate?: string;
+  estimatedHours?: number;
   assigneeId?: string | null;
   milestoneId?: string | null;
 }
