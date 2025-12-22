@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Upload, X, FileIcon, CheckCircle, AlertCircle } from "lucide-react";
 import { useDocumentUpload } from "@/hooks/use-document-upload";
-import { formatFileSize } from "@/lib/storage";
+import { formatFileSize } from "@/lib/storage-utils";
 import { cn } from "@/lib/utils";
 
 type DocumentCategory =

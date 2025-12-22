@@ -41,7 +41,7 @@ import {
   Presentation,
   File,
 } from "lucide-react";
-import { formatFileSize } from "@/lib/storage";
+import { formatFileSize } from "@/lib/storage-utils";
 import { cn } from "@/lib/utils";
 
 type DocumentCategory =

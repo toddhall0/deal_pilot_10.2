@@ -52,7 +52,7 @@ import { DocumentUploader } from "./document-uploader";
 import { CreateFolderDialog } from "./create-folder-dialog";
 import { DocumentPreview } from "./document-preview";
 import { DraggableDocumentList } from "./draggable-document-list";
-import { formatFileSize } from "@/lib/storage";
+import { formatFileSize } from "@/lib/storage-utils";
 import { cn } from "@/lib/utils";
 
 type DocumentCategory =
