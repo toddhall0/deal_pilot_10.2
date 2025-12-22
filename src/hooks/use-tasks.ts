@@ -51,7 +51,11 @@ async function createTask(dealId: string, data: CreateTaskInput): Promise<Task> 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to create task");
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    console.error("Task creation failed:", errorData);
+    throw new Error(errorData.error || "Failed to create task");
+  }
   return res.json();
 }
 
@@ -87,6 +91,7 @@ export function useTaskMutations(dealId: string) {
     mutationFn: (data: CreateTaskInput) => createTask(dealId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks", dealId] });
+      queryClient.invalidateQueries({ queryKey: ["all-tasks"] });
       queryClient.invalidateQueries({ queryKey: ["deal", dealId] });
     },
   });

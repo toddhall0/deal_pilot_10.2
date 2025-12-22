@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { FolderKanban, Users, CheckSquare, TrendingUp, Calendar, FileText } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -9,9 +11,10 @@ async function getDashboardData() {
   const [
     activeDeals,
     totalClients,
-    pendingTasks,
+    pendingTaskCount,
     recentDeals,
     upcomingMilestones,
+    pendingTasks,
   ] = await Promise.all([
     prisma.deal.count({
       where: { status: { in: ["ACTIVE", "IN_DUE_DILIGENCE", "UNDER_CONTRACT", "PENDING_CLOSING"] } },
@@ -43,6 +46,19 @@ async function getDashboardData() {
         },
       },
     }),
+    prisma.task.findMany({
+      where: { status: { in: ["TODO", "IN_PROGRESS", "IN_REVIEW", "BLOCKED"] } },
+      take: 5,
+      orderBy: [
+        { dueDate: "asc" },
+        { priority: "desc" },
+        { createdAt: "desc" },
+      ],
+      include: {
+        deal: { select: { id: true, name: true, dealNumber: true } },
+        assignee: { select: { name: true } },
+      },
+    }),
   ]);
 
   // Calculate total deal value from financials
@@ -54,10 +70,11 @@ async function getDashboardData() {
   return {
     activeDeals,
     totalClients,
-    pendingTasks,
+    pendingTaskCount,
     totalDealValue,
     recentDeals,
     upcomingMilestones,
+    pendingTasks,
   };
 }
 
@@ -85,6 +102,34 @@ function getStatusColor(status: string): string {
       return "bg-gray-100 text-gray-800";
     default:
       return "bg-gray-100 text-gray-800";
+  }
+}
+
+function getTaskStatusColor(status: string): string {
+  switch (status) {
+    case "TODO":
+      return "bg-gray-100 text-gray-800";
+    case "IN_PROGRESS":
+      return "bg-blue-100 text-blue-800";
+    case "IN_REVIEW":
+      return "bg-purple-100 text-purple-800";
+    case "BLOCKED":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+}
+
+function getPriorityColor(priority: string): string {
+  switch (priority) {
+    case "URGENT":
+      return "bg-red-100 text-red-800";
+    case "HIGH":
+      return "bg-orange-100 text-orange-800";
+    case "MEDIUM":
+      return "bg-yellow-100 text-yellow-800";
+    default:
+      return "bg-gray-100 text-gray-600";
   }
 }
 
@@ -130,18 +175,20 @@ export default async function DashboardPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Tasks</CardTitle>
-            <CheckSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.pendingTasks}</div>
-            <p className="text-xs text-muted-foreground">
-              {data.pendingTasks === 1 ? "1 task pending" : `${data.pendingTasks} tasks pending`}
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/tasks">
+          <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Tasks</CardTitle>
+              <CheckSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{data.pendingTaskCount}</div>
+              <p className="text-xs text-muted-foreground">
+                {data.pendingTaskCount === 1 ? "1 task pending" : `${data.pendingTaskCount} tasks pending`}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Deal Value</CardTitle>
@@ -164,27 +211,29 @@ export default async function DashboardPage() {
             {data.recentDeals.length > 0 ? (
               <div className="space-y-4">
                 {data.recentDeals.map((deal) => (
-                  <div key={deal.id} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                        <FileText className="h-4 w-4 text-primary" />
+                  <Link key={deal.id} href={`/deals/${deal.id}`} className="block">
+                    <div className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0 hover:bg-muted/50 rounded p-2 -m-2 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                          <FileText className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{deal.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {deal.client.name} · {deal.dealNumber}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{deal.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {deal.client.name} · {deal.dealNumber}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <span className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(deal.status)}`}>
+                          {deal.status.replace(/_/g, " ")}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {deal._count.tasks} tasks
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(deal.status)}`}>
-                        {deal.status.replace(/_/g, " ")}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {deal._count.tasks} tasks
-                      </span>
-                    </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (
@@ -232,6 +281,59 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Pending Tasks Section */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Pending Tasks</CardTitle>
+            <CardDescription>Tasks requiring attention across all deals</CardDescription>
+          </div>
+          <Link href="/tasks" className="text-sm text-primary hover:underline">
+            View all tasks
+          </Link>
+        </CardHeader>
+        <CardContent>
+          {data.pendingTasks.length > 0 ? (
+            <div className="space-y-3">
+              {data.pendingTasks.map((task) => (
+                <Link key={task.id} href={`/deals/${task.deal.id}?tab=tasks`} className="block">
+                  <div className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0 hover:bg-muted/50 rounded p-2 -m-2 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100">
+                        <CheckSquare className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{task.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {task.deal.name} · {task.deal.dealNumber}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getTaskStatusColor(task.status)} variant="secondary">
+                        {task.status.replace(/_/g, " ")}
+                      </Badge>
+                      <Badge className={getPriorityColor(task.priority)} variant="secondary">
+                        {task.priority}
+                      </Badge>
+                      {task.dueDate && (
+                        <span className="text-xs text-muted-foreground">
+                          Due {formatDistanceToNow(task.dueDate, { addSuffix: true })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="flex h-[100px] items-center justify-center text-muted-foreground">
+              No pending tasks. Great job!
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

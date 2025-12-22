@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { taskCreateSchema } from "@/lib/validations/task";
+import { ZodError } from "zod";
 
 // GET /api/deals/[dealId]/tasks - List tasks for a deal
 export async function GET(
@@ -134,8 +135,11 @@ export async function POST(
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
     console.error("Error creating task:", error);
-    if (error instanceof Error && error.name === "ZodError") {
-      return NextResponse.json({ error: "Validation failed", details: error }, { status: 400 });
+    if (error instanceof ZodError) {
+      return NextResponse.json({
+        error: "Validation failed",
+        details: error.errors.map(e => ({ path: e.path.join('.'), message: e.message }))
+      }, { status: 400 });
     }
     return NextResponse.json({ error: "Failed to create task" }, { status: 500 });
   }
